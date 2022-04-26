@@ -1,0 +1,204 @@
+'''
+Calling necessary modules and libraries
+that will be used
+'''
+from tkinter import *
+from PIL import Image, ImageTk
+import random
+import sys
+
+# Sets up the overall frame
+root = Tk()
+root.title('War Game')
+root.geometry("900x500")
+root.configure(background="green")
+
+# Resize Cards/done
+def resize_cards(card):
+	# Open the image
+	our_card_img = Image.open(card)
+
+	# Resize The Image
+	our_card_resize_image = our_card_img.resize((150, 218))
+	
+	# output the card
+	global our_card_image
+	our_card_image = ImageTk.PhotoImage(our_card_resize_image)
+
+	# Return that card
+	return our_card_image
+
+# Shuffle The Cards
+def shuffle():
+	# Define Our Deck
+	suits = ["diamonds", "clubs", "hearts", "spades"]
+	
+	global values, deck, computer, player, start_timer
+	values = ['2','3','4','5','6','7','8','9','10','jack','queen','king','ace']
+	deck =[]
+	computer = []
+	player = []
+	# 11 = Jack, 12=Queen, 13=King, 14 = Ace
+	for suit in suits:
+		for value in values:
+			deck.append(f'{value}_of_{suit}')
+
+# Deal Out Cards
+def deal_cards():
+	for x in range(26):
+		print(x)
+		pCard = random.choice(deck)
+		player.append(pCard)
+		deck.remove(pCard)
+
+		cCard = random.choice(deck)
+		computer.append(cCard)
+		deck.remove(cCard)
+
+# Used to retrieve rank of a card
+def firstString(string):
+	rString = ''
+	for x in string:
+		if x == '_':
+			break
+		else:
+			rString += x
+	return rString
+
+# Carries out war if two cards have the same rank
+def war(n):
+	print('\t\t\t IT\'s TIME FOR WAR\n\n')
+	print('')
+	
+
+	if n < len(player) - 1 and n < len(computer) - 1:
+	 
+		if player[n] > computer[n]:
+			player.extend(player[n-4:n+1] + computer[n-4:n+1])
+			player[n-4:n+1] = []
+			computer[n-4:n+1] = []
+			print('\t\tYOU WON THE WAR\n')
+		
+		elif player[n] < computer[n]:
+			computer.extend(player[n-4:n+1] + computer[n-4:n+1])
+			computer[n-4:n+1] = []
+			player[n-4:n+1] = []
+			print('\t\tTHE COMPUTER WON THE WAR\n')
+
+		elif player[n] == computer[n]:
+			war(n+5)
+
+
+	else:
+		if n >= len(player) - 1 and n >= len(computer) - 1:
+			random.shuffle(player)
+			random.shuffle(computer)
+
+		elif n >= len(player) - 1:
+			random.shuffle(player)
+            
+		elif n >= len(computer) - 1:
+			random.shuffle(computer)
+
+# Main function that carries out the rules of the game
+def rules():
+	
+	comparePlay = values.index(firstString(player[0]))
+	compareComp = values.index(firstString(computer[0]))
+
+	print(comparePlay)
+	print(compareComp)
+
+	global computer_image
+	computer_image = resize_cards(f"C:/Users/anai4/Desktop/Cards/{computer[0]}.png")
+	computer_label.config(image=computer_image)
+
+	global player_image
+	player_image = resize_cards(f"C:/Users/anai4/Desktop/Cards/{player[0]}.png")
+	player_label.config(image=player_image)
+
+	
+
+	if comparePlay > compareComp:
+		player.append(computer[0])
+		player.append(player[0])
+		player.pop(0)
+		computer.remove(computer[0])
+
+	elif comparePlay < compareComp:
+		computer.append(player[0])
+		computer.append(computer[0])
+		computer.pop(0)
+		player.remove(player[0])
+
+	elif comparePlay == compareComp:
+		war(4)
+	
+	computer_deck_frame.config(text=f"The Computer has {len(computer)} cards")
+	player_deck_frame.config(text=f"The Player has {len(player)} cards")
+
+	root.title(f'War Game')
+
+	print('# of Player Cards \t\t # of Computer Cards')
+	print('----------------- \t\t -------------------')
+	print('     ' + str(len(player)) +' \t\t\t\t '+ str(len(computer)) + '\n\n')
+
+# Function that makes sure player and computer arrays aren't empty
+def play():
+	
+	if len(player) == 0:
+		computer_deck_frame.config(text="Computer Wins")
+		player_deck_frame.config(text="Player Loses")
+		next_button.destroy()
+	elif len(computer) == 0:
+		computer_deck_frame.config(text="Computer Loses")
+		player_deck_frame.config(text="Player Wins")
+		next_button.destroy()
+	else:
+		rules()
+
+
+frame = Frame(root, bg="green")
+frame.pack(pady=20)
+
+
+back_of_cards_image = resize_cards(f"C:/Users/anai4/Desktop/Cards/back_of_card.png")
+# Create Frames For Cards
+computer_frame = LabelFrame(frame, text="Computer", bd=0)
+computer_frame.grid(row=0, column=5, padx=20, ipadx=20)
+
+computer_deck_frame = LabelFrame(frame, text="COMP Deck", bd=0)
+computer_deck_frame.grid(row=0, column=0, padx=20, ipadx=20)
+
+player_frame = LabelFrame(frame, text="Player", bd=0)
+player_frame.grid(row=0, column=10, ipadx=20)
+
+player_deck_frame = LabelFrame(frame, text="Player Deck", bd=0)
+player_deck_frame.grid(row=0, column=15, padx=20, ipadx=20)
+
+# Put cards in frames
+computer_label = Label(computer_frame, text='')
+computer_label.pack(pady=20)
+
+computer_deck_label = Label(computer_deck_frame, text='')
+computer_deck_label.config(image=back_of_cards_image)
+computer_deck_label.pack(pady=20)
+
+player_label = Label(player_frame, text='')
+player_label.pack(pady=20)
+
+player_deck_label = Label(player_deck_frame, text='')
+player_deck_label.config(image=back_of_cards_image)
+player_deck_label.pack(pady=20)
+
+# Create a couple buttons
+next_button = Button(root, text="Next Round", font=("Arial", 14), command=play)
+next_button.pack(pady=20)
+
+
+# Shuffles and deals the Deck On Start
+shuffle()
+deal_cards()
+
+
+root.mainloop()
